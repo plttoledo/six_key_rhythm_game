@@ -2,6 +2,9 @@ import pygame
 import sys
 import os
 
+from create_beats import beat_array
+
+
 screen_width, screen_height = 800, 600
 
 fps = 60
@@ -272,6 +275,83 @@ def choose_difficulty(file_name):
                     main_menu()
 
         pygame.display.update()
+
+class Note(pygame.sprite.Sprite):
+    def __init__(self, identity, strum_time, position):
+        pygame.sprite.Sprite.__init__(self)
+        self.idnum = identity
+        self.strum = strum_time
+        self.miss = False
+        self.hit = False
+        self.difference = -2000000
+        if position == 1:
+            self.image = pygame.image.load('assets/noteA.png')
+            self.rect = self.image.get_rect()
+            self.rect.move_ip(pos_a, -100)
+        if position == 2:
+            self.image = pygame.image.load('assets/noteB.png')
+            self.rect = self.image.get_rect()
+            self.rect.move_ip(pos_b, -100)
+        if position == 3:
+            self.image = pygame.image.load('assets/noteC.png')
+            self.rect = self.image.get_rect()
+            self.rect.move_ip(pos_c, -100)
+        if position == 4:
+            self.image = pygame.image.load('assets/noteC.png')
+            self.rect = self.image.get_rect()
+            self.rect.move_ip(pos_d, -100)
+        if position == 5:
+            self.image = pygame.image.load('assets/noteB.png')
+            self.rect = self.image.get_rect()
+            self.rect.move_ip(pos_e, -100)
+        if position == 6:
+            self.image = pygame.image.load('assets/noteA.png')
+            self.rect = self.image.get_rect()
+            self.rect.move_ip(pos_f, -100)
+
+    def update(self, pressed, time):
+        if self.hit or self.miss:
+            self.kill()
+
+        if not self.hit and not self.miss and self.rect.centery > 520:
+            self.miss = True
+            self.difference = -1000000
+
+        if self.rect.centery > 480 and not self.miss and pressed:
+            if not self.hit:
+                pressed = False
+                self.difference = self.strum - time
+            self.hit = True
+
+    def move(self, shift):
+        if shift > 0:
+            self.rect.centery = shift
+
+def combo_count(amount):
+    font = pygame.font.SysFont("Roboto", 40)
+    text = font.render( f"Combo: {amount}", True, white)
+    screen.blit(text, (20, 20))
+
+def multiplier_count(amount):
+    font = pygame.font.SysFont("Roboto", 40)
+    text = font.render( f"{amount}x", True, white)
+    screen.blit(text, (20, 50))
+
+def score_count(score_amount):
+    font = pygame.font.SysFont("Roboto", 40)
+    text = font.render(f"{score_amount}", True, white)
+    screen.blit(text, (630, 20))
+
+def initialize(difficulty, audio_file_name):
+    print('Loading...')
+
+    try:
+        beatmap, ending_time = beat_array(audio_file_name, difficulty)
+    except:
+        print('Unable to read audio file')
+        main_menu()
+
+    game_loop(audio_file_name, beatmap, ending_time)
 
 if __name__ == '__main__':
     main_menu()
