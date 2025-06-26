@@ -353,5 +353,203 @@ def initialize(difficulty, audio_file_name):
 
     game_loop(audio_file_name, beatmap, ending_time)
 
+def game_loop(file_name, beatmap, ending_time):
+    pygame.mixer.music.load(file_name)
+    pygame.mixer.music.set_volume(0.1)
+
+    combo = 0
+    score = 0
+    multipier = 1
+
+    keypress_s = False
+    keypress_d = False
+    keypress_f = False
+    keypress_j = False
+    keypress_k = False
+    keypress_l = False
+
+    notes_a = pygame.sprite.Group()
+    notes_b = pygame.sprite.Group()
+    notes_c = pygame.sprite.Group()
+    notes_d = pygame.sprite.Group()
+    notes_e = pygame.sprite.Group()
+    notes_f = pygame.sprite.Group()
+
+    note_dict = {
+        1: notes_a.add,
+        2: notes_b.add,
+        3: notes_c.add,
+        4: notes_d.add,
+        5: notes_e.add,
+        6: notes_f.add,
+    }
+
+    for idx, beat in enumerate(beatmap):
+        timing = beat['time']
+        position = beat['position']
+        note_dict[position](Note(idx, timing, position))
+
+    print('Loading Done!')
+
+    current = 0
+    previous_frametime = 0
+    last_play_head_position = 0
+    most_accurate = 0
+
+    pygame.mixer.music.play()
+
+    clock = pygame.time.Clock()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    keypress_s = True
+                if event.key == pygame.K_d:
+                    keypress_d = True
+                if event.key == pygame.K_f:
+                    keypress_f = True
+                if event.key == pygame.K_j:
+                    keypress_j = True
+                if event.key == pygame.K_k:
+                    keypress_k = True
+                if event.key == pygame.K_l:
+                    keypress_l = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_s:
+                    keypress_s = False
+                if event.key == pygame.K_d:
+                    keypress_d = False
+                if event.key == pygame.K_f:
+                    keypress_f = False
+                if event.key == pygame.K_j:
+                    keypress_j = False
+                if event.key == pygame.K_k:
+                    keypress_k = False
+                if event.key == pygame.K_l:
+                    keypress_l = False
+
+        current += clock.get_time()
+
+        if current >= ending_time:
+            pygame.mixer.music.unload()
+            main_menu()
+
+        most_accurate += current - previous_frametime
+        previous_frametime = current
+        song_time = pygame.mixer.music.get_pos()
+        if song_time != last_play_head_position:
+            most_accurate = (most_accurate + song_time) / 2
+            last_play_head_position = song_time
+
+        if combo < 10:
+            multipier = 1
+        if 10 <= combo < 20:
+            multipier = 2
+        elif 20 <= combo < 30:
+            multipier = 3
+        elif 30 <= combo:
+            multipier = 4
+
+        screen.fill(black)
+        combo_count(combo)
+        multiplier_count(multipier)
+        score_count(score)
+
+        if keypress_s:
+            screen.blit(pressed, (pos_a, 494))
+        if keypress_d:
+            screen.blit(pressed, (pos_b, 494))
+        if keypress_f:
+            screen.blit(pressed, (pos_c, 494))
+        if keypress_j:
+            screen.blit(pressed, (pos_d, 494))
+        if keypress_k:
+            screen.blit(pressed, (pos_e, 494))
+        if keypress_l:
+            screen.blit(pressed, (pos_f, 494))
+
+        notes_a.draw(screen)
+        notes_b.draw(screen)
+        notes_c.draw(screen)
+        notes_d.draw(screen)
+        notes_e.draw(screen)
+        notes_f.draw(screen)
+
+        screen.blit(strum, (0, 0))
+
+        for note in notes_a:
+            distance = strum_position - (note.strum / speed - most_accurate / speed) + visual_latency
+            note.move(distance)
+            status_a = note.difference
+            if -500 <= status_a <= 500:
+                combo += 1
+                score += 1000 * multipier
+            elif status_a == -1000000:
+                combo = 0
+
+        for note in notes_b:
+            distances = strum_position - (note.strum / speed - most_accurate / speed) + visual_latency
+            note.move(distances)
+            status_b = note.difference
+            if -500 <= status_b <= 500:
+                combo += 1
+                score += 1000 * multipier
+            elif status_b == -1000000:
+                combo = 0
+
+        for note in notes_c:
+            distance = strum_position - (note.strum / speed - most_accurate / speed) + visual_latency
+            note.move(distance)
+            status_c = note.difference
+            if -500 <= status_c <= 500:
+                combo += 1
+                score += 1000 * multipier
+            elif status_c == -1000000:
+                combo = 0
+
+        for note in notes_d:
+            distance = strum_position - (note.strum / speed - most_accurate / speed) + visual_latency
+            note.move(distance)
+            status_d = note.difference
+            if -500 <= status_d <= 500:
+                combo += 1
+                score += 1000 * multipier
+            elif status_d == -1000000:
+                combo = 0
+
+        for note in notes_e:
+            distance = strum_position - (note.strum / speed - most_accurate / speed) + visual_latency
+            note.move(distance)
+            status_e = note.difference
+            if -500 <= status_e <= 500:
+                combo += 1
+                score += 1000 * multipier
+            elif status_e == -1000000:
+                combo = 0
+
+        for note in notes_f:
+            distance = strum_position - (note.strum / speed - most_accurate / speed) + visual_latency
+            note.move(distance)
+            status_f = note.difference
+            if -500 <= status_f <= 500:
+                combo += 1
+                score += 1000 * multipier
+            elif status_f == -1000000:
+                combo = 0
+
+        notes_a.update(keypress_s, most_accurate)
+        notes_b.update(keypress_d, most_accurate)
+        notes_c.update(keypress_f, most_accurate)
+        notes_d.update(keypress_j, most_accurate)
+        notes_e.update(keypress_k, most_accurate)
+        notes_f.update(keypress_l, most_accurate)
+
+        pygame.display.update()
+        clock.tick(fps)
+
 if __name__ == '__main__':
     main_menu()
