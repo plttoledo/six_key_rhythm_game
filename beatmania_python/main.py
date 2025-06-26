@@ -111,3 +111,167 @@ def read_file():
     text = settings.read()
     settings.close()
     return text
+
+
+def file_browser(path, offset):
+    write_file(path)
+    file_names = os.listdir(path)
+    filtered_names = []
+
+    for name in file_names:
+        full_path = f"{path}/{name}"
+        if os.path.isdir(full_path):
+            filtered_names.append(name)
+        elif os.path.isfile(full_path):
+            split = os.path.splitext(name)
+            extension = split[1]
+            if extension == '.mp3' or extension == '.flac':
+                filtered_names.append(name)
+
+    menu_text = pygame.font.SysFont("Roboto", 40).render(path, True, "#ff5c5c")
+    menu_rect = menu_text.get_rect(center=(400, 30))
+
+    up_button = Button(pos=(150, 70), text_input="Go to parent folder", font=pygame.font.SysFont("Roboto", 40),
+                       base_color="#60d4fc", hover_color="White")
+    back_button = Button(pos=(50, 570), text_input="Back", font=pygame.font.SysFont("Roboto", 40), base_color="#60d4fc",
+                         hover_color="White")
+
+    show_next = False
+    if (len(filtered_names) - offset) - 24 > 0:
+        next_button = Button(pos=(730, 570), text_input="Next", font=pygame.font.SysFont("Roboto", 40),
+                             base_color="#60d4fc", hover_color="White")
+        show_next = True
+
+    show_prev = False
+    if offset > 0:
+        prev_button = Button(pos=(650, 570), text_input="Prev", font=pygame.font.SysFont("Roboto", 40),
+                             base_color="#60d4fc", hover_color="White")
+        show_prev = True
+
+    file_buttons = []
+    folder_buttons = []
+
+    for idx, name in enumerate(filtered_names[offset:]):
+        if idx > 24:
+            break
+
+        full_path = f"{path}/{name}"
+
+        y = ((idx % 8) * 50) + 120
+        x = (idx // 8) * 280 + 120
+
+        adjusted_name = name
+        if len(name) > 11:
+            adjusted_name = f"{name[:12]}..."
+
+        if os.path.isdir(full_path):
+            folder_buttons.append(Button(pos=(x, y), text_input=adjusted_name,
+                                         font=pygame.font.SysFont("Roboto", 40), base_color="#60d4fc",
+                                         hover_color="White", file_name=name))
+        elif os.path.isfile(full_path):
+            file_buttons.append(Button(pos=(x, y), text_input=adjusted_name,
+                                       font=pygame.font.SysFont("Roboto", 40), base_color="#88fc5c",
+                                       hover_color="White", file_name=name))
+
+    while True:
+        hovered_name = None
+        screen.fill(black)
+        pos = pygame.mouse.get_pos()
+        screen.blit(menu_text, menu_rect)
+
+        up_button.change_color(pos)
+        up_button.update(screen)
+
+        back_button.change_color(pos)
+        back_button.update(screen)
+
+        if show_next:
+            next_button.change_color(pos)
+            next_button.update(screen)
+
+        if show_prev:
+            prev_button.change_color(pos)
+            prev_button.update(screen)
+
+        for file_button in file_buttons:
+            file_button.change_color(pos)
+            file_button.update(screen)
+            if file_button.check_hover(pos):
+                hovered_name = file_button.file_name
+
+        for folder_button in folder_buttons:
+            folder_button.change_color(pos)
+            folder_button.update(screen)
+            if folder_button.check_hover(pos):
+                hovered_name = folder_button.file_name
+
+        if hovered_name:
+            hover_text = pygame.font.SysFont("Roboto", 40).render(hovered_name, True, "#ff5c5c")
+            hover_rect = hover_text.get_rect(center=(400, 530))
+            screen.blit(hover_text, hover_rect)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if up_button.check_for_input(pos):
+                    file_browser(os.path.dirname(path), 0)
+                if back_button.check_for_input(pos):
+                    main_menu()
+                if show_next:
+                    if next_button.check_for_input(pos):
+                        file_browser(path, offset + 24)
+                if show_prev:
+                    if prev_button.check_for_input(pos):
+                        file_browser(path, offset - 24)
+                for file_button in file_buttons:
+                    if file_button.check_for_input(pos):
+                        choose_difficulty(f"{path}/{file_button.file_name}")
+                for folder_button in folder_buttons:
+                    if folder_button.check_for_input(pos):
+                        file_browser(f"{path}/{folder_button.file_name}", 0)
+
+        pygame.display.update()
+
+def choose_difficulty(file_name):
+    menu_text = pygame.font.SysFont("Roboto", 100).render("Choose Difficulty", True, "#ff5c5c")
+    menu_rect = menu_text.get_rect(center=(400, 100))
+
+    easy_button = Button(pos=(400, 250), text_input="Easy", font=pygame.font.SysFont("Roboto", 80),
+                         base_color="#60d4fc", hover_color="White")
+    hard_button = Button(pos=(400, 400), text_input="Hard", font=pygame.font.SysFont("Roboto", 80),
+                         base_color="#60d4fc", hover_color="White")
+    back_button = Button(pos=(50, 570), text_input="Back", font=pygame.font.SysFont("Roboto", 40), base_color="#60d4fc",
+                         hover_color="White")
+
+    while True:
+        screen.fill(black)
+        pos = pygame.mouse.get_pos()
+        screen.blit(menu_text, menu_rect)
+
+        easy_button.change_color(pos)
+        easy_button.update(screen)
+
+        hard_button.change_color(pos)
+        hard_button.update(screen)
+
+        back_button.change_color(pos)
+        back_button.update(screen)
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if easy_button.check_for_input(pos):
+                    initialize('easy', file_name)
+                if hard_button.check_for_input(pos):
+                    initialize('hard', file_name)
+                if back_button.check_for_input(pos):
+                    main_menu()
+
+        pygame.display.update()
+
+if __name__ == '__main__':
+    main_menu()
