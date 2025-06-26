@@ -100,3 +100,14 @@ def main_menu():
                     sys.exit()
 
         pygame.display.update()
+
+def write_file(text):
+    settings = open("settings.txt","w", encoding='utf8')
+    settings.write(text)
+    settings.close()
+
+def read_file():
+    settings = open("settings.txt","r", encoding='utf8')
+    text = settings.read()
+    settings.close()
+    return text
